@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="NotesCalendar.Views.NoteEditPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:NotesCalendar.ViewModels"
+             x:DataType="vm:NoteEditViewModel"
+             Title="{Binding PageTitle}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Сохранить" Command="{Binding SaveCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="8">
+
+            <Label Text="Заголовок" Style="{StaticResource SectionLabel}" />
+            <Entry Text="{Binding Title}" Placeholder="Что запомнить?" ReturnType="Next" />
+
+            <Label Text="Текст" Style="{StaticResource SectionLabel}" />
+            <Editor Text="{Binding Content}" Placeholder="Подробности заметки" HeightRequest="180" />
+
+            <Label Text="Дата" Style="{StaticResource SectionLabel}" />
+            <DatePicker Date="{Binding Date}" Format="dd MMMM yyyy" />
+
+            <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                <Label Text="Указать время" VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding HasTime}" />
+            </Grid>
+            <TimePicker Time="{Binding Time}" Format="HH:mm" IsVisible="{Binding HasTime}" />
+
+            <Button Text="Сохранить" Style="{StaticResource PrimaryButton}" Margin="0,16,0,0"
+                    Command="{Binding SaveCommand}" />
+            <Button Text="Удалить" Style="{StaticResource DangerButton}"
+                    Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

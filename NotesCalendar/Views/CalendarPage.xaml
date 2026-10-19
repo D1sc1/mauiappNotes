@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="NotesCalendar.Views.CalendarPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:NotesCalendar.Models"
+             xmlns:vm="clr-namespace:NotesCalendar.ViewModels"
+             x:DataType="vm:CalendarViewModel"
+             Title="Заметки">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Сегодня" Command="{Binding GoToTodayCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
+
+        <!-- Заголовок месяца и переключатели -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Padding="8,8,8,0">
+            <Button Grid.Column="0" Text="‹" Style="{StaticResource NavButton}"
+                    Command="{Binding PreviousMonthCommand}" />
+            <Label Grid.Column="1" Text="{Binding MonthTitle}" Style="{StaticResource MonthTitle}" />
+            <Button Grid.Column="2" Text="›" Style="{StaticResource NavButton}"
+                    Command="{Binding NextMonthCommand}" />
+        </Grid>
+
+        <!-- Дни недели -->
+        <CollectionView Grid.Row="1" ItemsSource="{Binding WeekDayNames}"
+                        SelectionMode="None" HeightRequest="28" Margin="8,0">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="7" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <Label Text="{Binding .}" Style="{StaticResource MutedLabel}"
+                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Сетка месяца: 6 недель × 56 -->
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Days}"
+                        SelectionMode="None" HeightRequest="336" Margin="8,0,8,8">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="7" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:CalendarDay">
+                    <Grid RowDefinitions="38,6" RowSpacing="2" HeightRequest="56" Padding="0,4">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CalendarViewModel}}, Path=SelectDayCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Grid.GestureRecognizers>
+                        <Grid.Triggers>
+                            <DataTrigger TargetType="Grid" Binding="{Binding IsCurrentMonth}" Value="False">
+                                <Setter Property="Opacity" Value="0.35" />
+                            </DataTrigger>
+                        </Grid.Triggers>
+
+                        <Border Grid.Row="0" WidthRequest="38" HeightRequest="38"
+                                HorizontalOptions="Center" VerticalOptions="Center"
+                                BackgroundColor="Transparent" Stroke="Transparent" StrokeThickness="2"
+                                StrokeShape="RoundRectangle 19">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsToday}" Value="True">
+                                    <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Label Text="{Binding DayNumber}" FontSize="16"
+                                   HorizontalOptions="Center" VerticalOptions="Center">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="TextColor" Value="{StaticResource OnPrimary}" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+
+                        <!-- Точка: в этот день есть заметки -->
+                        <BoxView Grid.Row="1" WidthRequest="6" HeightRequest="6" CornerRadius="3"
+                                 HorizontalOptions="Center" Color="{StaticResource Primary}"
+                                 IsVisible="{Binding HasNotes}" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Заметки выбранного дня -->
+        <Grid Grid.Row="3" RowDefinitions="Auto,*">
+            <Label Grid.Row="0" Text="{Binding SelectedDateTitle}" FontSize="16" FontAttributes="Bold"
+                   Margin="16,4,16,8" />
+
+            <CollectionView Grid.Row="1" ItemsSource="{Binding SelectedDayNotes}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label Text="В этот день заметок нет" Style="{StaticResource MutedLabel}"
+                           HorizontalTextAlignment="Center" Margin="16,24" />
+                </CollectionView.EmptyView>
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="88" Color="Transparent" />
+                </CollectionView.Footer>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Note">
+                        <SwipeView Margin="16,0,16,8">
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Удалить" BackgroundColor="{StaticResource Danger}"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CalendarViewModel}}, Path=DeleteNoteCommand}"
+                                               CommandParameter="{Binding .}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+                            <Border Style="{StaticResource CardBorder}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CalendarViewModel}}, Path=EditNoteCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="64,*" ColumnSpacing="8">
+                                    <Label Grid.Column="0" Text="{Binding TimeText}" Style="{StaticResource MutedLabel}"
+                                           FontAttributes="Bold" VerticalOptions="Start" />
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                        <Label Text="{Binding DisplayTitle}" FontSize="16" FontAttributes="Bold"
+                                               LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding Preview}" Style="{StaticResource MutedLabel}"
+                                               MaxLines="2" LineBreakMode="TailTruncation"
+                                               IsVisible="{Binding HasPreview}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Кнопка «Добавить» поверх списка -->
+            <Button Grid.Row="0" Grid.RowSpan="2" Text="+" FontSize="30"
+                    WidthRequest="56" HeightRequest="56" CornerRadius="28" Padding="0"
+                    HorizontalOptions="End" VerticalOptions="End" Margin="20"
+                    BackgroundColor="{StaticResource Primary}" TextColor="{StaticResource OnPrimary}"
+                    Command="{Binding AddNoteCommand}" />
+        </Grid>
+    </Grid>
+</ContentPage>
