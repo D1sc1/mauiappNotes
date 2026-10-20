@@ -25,6 +25,8 @@ public class NoteRepository : INoteRepository
             {
                 var db = new SQLiteAsyncConnection(Path.Combine(FileSystem.AppDataDirectory, DbFileName), Flags);
                 await db.CreateTableAsync<Note>();
+                // Колонка ColorIndex добавляется миграцией sqlite-net; у старых строк в ней NULL.
+                await db.ExecuteAsync("UPDATE Note SET ColorIndex = 0 WHERE ColorIndex IS NULL");
                 _db = db;
             }
             return _db;
@@ -45,6 +47,19 @@ public class NoteRepository : INoteRepository
         // Сначала заметки на весь день, затем по времени.
         return notes
             .OrderBy(n => n.Date)
+            .ThenBy(n => n.HasTime)
+            .ThenBy(n => n.Time)
+            .ThenBy(n => n.Id)
+            .ToList();
+    }
+
+    public async Task<List<Note>> GetAllAsync()
+    {
+        var db = await GetDbAsync();
+        var notes = await db.Table<Note>().ToListAsync();
+
+        return notes
+            .OrderByDescending(n => n.Date)
             .ThenBy(n => n.HasTime)
             .ThenBy(n => n.Time)
             .ThenBy(n => n.Id)

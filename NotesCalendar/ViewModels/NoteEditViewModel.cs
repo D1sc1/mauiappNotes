@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -32,6 +33,11 @@ public partial class NoteEditViewModel : ObservableObject, IQueryAttributable
     [NotifyPropertyChangedFor(nameof(CanDelete))]
     private bool isNew = true;
 
+    [ObservableProperty]
+    private int colorIndex;
+
+    public ObservableCollection<ColorOption> ColorOptions { get; } = new(NotePalette.CreateOptions(includeNone: true));
+
     public string PageTitle => IsNew ? "Новая заметка" : "Заметка";
 
     public bool CanDelete => !IsNew;
@@ -39,6 +45,20 @@ public partial class NoteEditViewModel : ObservableObject, IQueryAttributable
     public NoteEditViewModel(INoteRepository repository)
     {
         _repository = repository;
+        OnColorIndexChanged(ColorIndex);
+    }
+
+    partial void OnColorIndexChanged(int value)
+    {
+        foreach (var option in ColorOptions)
+            option.IsSelected = option.Index == value;
+    }
+
+    [RelayCommand]
+    private void SelectColor(ColorOption? option)
+    {
+        if (option is not null)
+            ColorIndex = option.Index;
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -68,6 +88,7 @@ public partial class NoteEditViewModel : ObservableObject, IQueryAttributable
         Content = note.Content;
         Date = note.Date;
         HasTime = note.HasTime;
+        ColorIndex = note.ColorIndex;
         if (note.HasTime)
             Time = note.Time;
         IsNew = false;
@@ -86,6 +107,7 @@ public partial class NoteEditViewModel : ObservableObject, IQueryAttributable
         _note.Content = Content.Trim();
         _note.Date = Date.Date;
         _note.HasTime = HasTime;
+        _note.ColorIndex = ColorIndex;
         _note.Time = HasTime ? Time : TimeSpan.Zero;
 
         await _repository.SaveAsync(_note);

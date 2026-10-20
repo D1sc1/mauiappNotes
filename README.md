@@ -10,6 +10,8 @@
 - Список заметок выбранного дня: «весь день» сверху, затем по времени.
 - Создание и редактирование заметки: заголовок, текст, дата, необязательное время.
 - Удаление: свайпом влево в списке или кнопкой на экране редактирования (с подтверждением).
+- Цветные метки (6 цветов): выбираются на экране заметки, показываются полоской в списке и цветными точками под числом в календаре (до трёх, серая — заметка без метки).
+- Поиск (кнопка «Поиск» вверху): по заголовку и тексту всех заметок без учёта регистра, слова через пробел должны встречаться все; фильтр по цвету метки (повторное нажатие снимает фильтр).
 - Кнопка «Сегодня», светлая и тёмная темы.
 - Данные хранятся локально в SQLite (`notes.db3` в каталоге данных приложения).
 
@@ -17,10 +19,10 @@
 
 ```
 NotesCalendar/
-├── Models/        Note, CalendarDay, CalendarGrid (логика построения сетки месяца)
+├── Models/        Note, CalendarDay, CalendarGrid (сетка месяца), MonthItem, NotePalette/ColorOption (метки)
 ├── Services/      INoteRepository / NoteRepository (SQLite), NoteChangedMessage
-├── ViewModels/    CalendarViewModel, NoteEditViewModel (CommunityToolkit.Mvvm)
-├── Views/         CalendarPage, NoteEditPage
+├── ViewModels/    CalendarViewModel, NoteEditViewModel, SearchViewModel (CommunityToolkit.Mvvm)
+├── Views/         CalendarPage, NoteEditPage, SearchPage
 ├── Resources/     цвета, стили, иконка, заставка
 └── Platforms/     Android, iOS, MacCatalyst, Windows
 ```

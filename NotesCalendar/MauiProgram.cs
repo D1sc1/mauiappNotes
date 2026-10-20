@@ -18,6 +18,8 @@ public static class MauiProgram
         builder.Services.AddTransient<CalendarPage>();
         builder.Services.AddTransient<NoteEditViewModel>();
         builder.Services.AddTransient<NoteEditPage>();
+        builder.Services.AddTransient<SearchViewModel>();
+        builder.Services.AddTransient<SearchPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

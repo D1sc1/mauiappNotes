@@ -2,6 +2,7 @@
 <ContentPage x:Class="NotesCalendar.Views.NoteEditPage"
              xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:NotesCalendar.Models"
              xmlns:vm="clr-namespace:NotesCalendar.ViewModels"
              x:DataType="vm:NoteEditViewModel"
              Title="{Binding PageTitle}">
@@ -18,6 +19,26 @@
 
             <Label Text="Текст" Style="{StaticResource SectionLabel}" />
             <Editor Text="{Binding Content}" Placeholder="Подробности заметки" HeightRequest="180" />
+
+            <Label Text="Цвет метки" Style="{StaticResource SectionLabel}" />
+            <HorizontalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding ColorOptions}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="models:ColorOption">
+                        <Border WidthRequest="34" HeightRequest="34" BackgroundColor="{Binding Fill}"
+                                Stroke="Transparent" StrokeShape="RoundRectangle 17"
+                                SemanticProperties.Description="{Binding Name}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:NoteEditViewModel}}, Path=SelectColorCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="✓" TextColor="White" FontAttributes="Bold" FontSize="18"
+                                   HorizontalOptions="Center" VerticalOptions="Center"
+                                   IsVisible="{Binding IsSelected}" />
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </HorizontalStackLayout>
 
             <Label Text="Дата" Style="{StaticResource SectionLabel}" />
             <DatePicker Date="{Binding Date}" Format="dd MMMM yyyy" />

@@ -70,6 +70,9 @@ public partial class CalendarViewModel : ObservableObject
     private Task NextMonthAsync() => ChangeMonthAsync(1);
 
     [RelayCommand]
+    private Task OpenSearchAsync() => Shell.Current.GoToAsync(Routes.Search);
+
+    [RelayCommand]
     private Task PreviousYearAsync() => ChangeMonthAsync(-12);
 
     [RelayCommand]
@@ -205,7 +208,7 @@ public partial class CalendarViewModel : ObservableObject
             return;
 
         _visibleNotes = notes;
-        var counts = notes.GroupBy(n => n.Date.Date).ToDictionary(g => g.Key, g => g.Count());
+        var byDay = notes.GroupBy(n => n.Date.Date).ToDictionary(g => g.Key, g => g.ToList());
         var today = DateTime.Today;
 
         for (var i = 0; i < Days.Count; i++)
@@ -215,7 +218,17 @@ public partial class CalendarViewModel : ObservableObject
             day.Date = date;
             day.IsCurrentMonth = date.Month == _visibleMonth.Month && date.Year == _visibleMonth.Year;
             day.IsToday = date == today;
-            day.NoteCount = counts.GetValueOrDefault(date);
+
+            var dayNotes = byDay.GetValueOrDefault(date);
+            day.NoteCount = dayNotes?.Count ?? 0;
+            day.Marks = dayNotes is null
+                ? new List<Color>()
+                : dayNotes.Select(n => n.ColorIndex)
+                    .Distinct()
+                    .OrderBy(index => index == 0 ? int.MaxValue : index) // цветные метки раньше серой точки
+                    .Take(3)
+                    .Select(NotePalette.Mark)
+                    .ToList();
         }
 
         MonthTitle = Capitalize(_visibleMonth.ToString("MMMM yyyy", _culture));

@@ -22,6 +22,10 @@ public partial class CalendarDay : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasNotes))]
     private int noteCount;
 
+    /// <summary>Цвета точек под числом (до трёх): метки заметок этого дня.</summary>
+    [ObservableProperty]
+    private IReadOnlyList<Color> marks = [];
+
     public int DayNumber => Date.Day;
 
     public bool HasNotes => NoteCount > 0;

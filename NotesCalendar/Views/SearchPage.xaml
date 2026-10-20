@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="NotesCalendar.Views.SearchPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:NotesCalendar.Models"
+             xmlns:vm="clr-namespace:NotesCalendar.ViewModels"
+             x:DataType="vm:SearchViewModel"
+             Title="Поиск">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
+
+        <SearchBar x:Name="SearchBox" Grid.Row="0" Text="{Binding Query}"
+                   Placeholder="Поиск по заголовку и тексту" Margin="8,8,8,0" />
+
+        <!-- Фильтр по цвету метки: повторное нажатие снимает фильтр -->
+        <HorizontalStackLayout Grid.Row="1" Spacing="10" Margin="16,8,16,0"
+                               BindableLayout.ItemsSource="{Binding ColorOptions}">
+            <BindableLayout.ItemTemplate>
+                <DataTemplate x:DataType="models:ColorOption">
+                    <Border WidthRequest="34" HeightRequest="34" BackgroundColor="{Binding Fill}"
+                            Stroke="Transparent" StrokeShape="RoundRectangle 17"
+                            SemanticProperties.Description="{Binding Name}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SearchViewModel}}, Path=ToggleColorCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="✓" TextColor="White" FontAttributes="Bold" FontSize="18"
+                               HorizontalOptions="Center" VerticalOptions="Center"
+                               IsVisible="{Binding IsSelected}" />
+                    </Border>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </HorizontalStackLayout>
+
+        <Label Grid.Row="2" Text="{Binding Summary}" Style="{StaticResource MutedLabel}" Margin="16,10,16,6" />
+
+        <CollectionView Grid.Row="3" ItemsSource="{Binding Results}" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="{Binding EmptyText}" Style="{StaticResource MutedLabel}"
+                       HorizontalTextAlignment="Center" Margin="16,24" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Note">
+                    <Border Style="{StaticResource CardBorder}" Margin="16,0,16,8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SearchViewModel}}, Path=EditNoteCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                        <Grid ColumnDefinitions="4,*" ColumnSpacing="10">
+                            <BoxView Grid.Column="0" Color="{Binding StripeColor}" CornerRadius="2" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="{Binding DateTimeText}" Style="{StaticResource MutedLabel}" FontAttributes="Bold" />
+                                <Label Text="{Binding DisplayTitle}" FontSize="16" FontAttributes="Bold"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding Preview}" Style="{StaticResource MutedLabel}"
+                                       MaxLines="2" LineBreakMode="TailTruncation"
+                                       IsVisible="{Binding HasPreview}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>
