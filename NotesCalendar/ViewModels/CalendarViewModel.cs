@@ -27,7 +27,15 @@ public partial class CalendarViewModel : ObservableObject
     [ObservableProperty]
     private DateTime selectedDate = DateTime.Today;
 
+    [ObservableProperty]
+    private bool isMonthPickerOpen;
+
+    [ObservableProperty]
+    private int pickerYear;
+
     public ObservableCollection<CalendarDay> Days { get; } = [];
+
+    public ObservableCollection<MonthItem> PickerMonths { get; } = [];
 
     public ObservableCollection<Note> SelectedDayNotes { get; } = [];
 
@@ -60,6 +68,43 @@ public partial class CalendarViewModel : ObservableObject
 
     [RelayCommand]
     private Task NextMonthAsync() => ChangeMonthAsync(1);
+
+    [RelayCommand]
+    private Task PreviousYearAsync() => ChangeMonthAsync(-12);
+
+    [RelayCommand]
+    private Task NextYearAsync() => ChangeMonthAsync(12);
+
+    [RelayCommand]
+    private void ToggleMonthPicker()
+    {
+        if (IsMonthPickerOpen)
+        {
+            IsMonthPickerOpen = false;
+            return;
+        }
+
+        PickerYear = _visibleMonth.Year;
+        BuildPickerMonths();
+        IsMonthPickerOpen = true;
+    }
+
+    [RelayCommand]
+    private void PreviousPickerYear() => ShiftPickerYear(-1);
+
+    [RelayCommand]
+    private void NextPickerYear() => ShiftPickerYear(1);
+
+    [RelayCommand]
+    private Task PickMonthAsync(MonthItem? month)
+    {
+        if (month is null)
+            return Task.CompletedTask;
+
+        var delta = (PickerYear - SelectedDate.Year) * 12 + month.Number - SelectedDate.Month;
+        ShowDate(CalendarGrid.ShiftMonth(SelectedDate, delta));
+        return ReloadAsync();
+    }
 
     [RelayCommand]
     private Task GoToTodayAsync()
@@ -107,14 +152,46 @@ public partial class CalendarViewModel : ObservableObject
     private Task ChangeMonthAsync(int delta)
     {
         // Выбранный день переезжает вместе с месяцем, чтобы выделение не пропадало.
-        ShowDate(CalendarGrid.ShiftMonth(SelectedDate, delta));
+        var target = CalendarGrid.ShiftMonth(SelectedDate, delta);
+        if (target.Year is < CalendarGrid.MinYear or > CalendarGrid.MaxYear)
+            return Task.CompletedTask;
+
+        ShowDate(target);
         return ReloadAsync();
+    }
+
+    private void ShiftPickerYear(int delta)
+    {
+        var year = PickerYear + delta;
+        if (year is < CalendarGrid.MinYear or > CalendarGrid.MaxYear)
+            return;
+
+        PickerYear = year;
+        BuildPickerMonths();
+    }
+
+    private void BuildPickerMonths()
+    {
+        var today = DateTime.Today;
+
+        PickerMonths.Clear();
+        for (var month = 1; month <= 12; month++)
+        {
+            PickerMonths.Add(new MonthItem
+            {
+                Number = month,
+                Name = Capitalize(_culture.DateTimeFormat.GetMonthName(month)),
+                IsSelected = PickerYear == _visibleMonth.Year && month == _visibleMonth.Month,
+                IsToday = PickerYear == today.Year && month == today.Month,
+            });
+        }
     }
 
     private void ShowDate(DateTime date)
     {
         SelectedDate = date.Date;
         _visibleMonth = FirstOfMonth(SelectedDate);
+        IsMonthPickerOpen = false;
     }
 
     private async Task ReloadAsync()

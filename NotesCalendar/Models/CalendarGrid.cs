@@ -7,6 +7,10 @@ public static class CalendarGrid
     public const int Weeks = 6;
     public const int CellCount = DaysInWeek * Weeks;
 
+    /// <summary>Допустимый диапазон годов для навигации.</summary>
+    public const int MinYear = 1900;
+    public const int MaxYear = 2200;
+
     /// <summary>Дата первой ячейки сетки для месяца, в котором лежит <paramref name="month"/>.</summary>
     public static DateTime GetGridStart(DateTime month, DayOfWeek firstDayOfWeek)
     {

@@ -14,12 +14,25 @@
     <Grid RowDefinitions="Auto,Auto,Auto,*">
 
         <!-- Заголовок месяца и переключатели -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Padding="8,8,8,0">
-            <Button Grid.Column="0" Text="‹" Style="{StaticResource NavButton}"
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto,Auto" Padding="4,8,4,0">
+            <Button Grid.Column="0" Text="«" Style="{StaticResource NavButton}"
+                    Command="{Binding PreviousYearCommand}" />
+            <Button Grid.Column="1" Text="‹" Style="{StaticResource NavButton}"
                     Command="{Binding PreviousMonthCommand}" />
-            <Label Grid.Column="1" Text="{Binding MonthTitle}" Style="{StaticResource MonthTitle}" />
-            <Button Grid.Column="2" Text="›" Style="{StaticResource NavButton}"
+
+            <!-- Нажатие на заголовок открывает быстрый выбор месяца и года -->
+            <HorizontalStackLayout Grid.Column="2" Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                <HorizontalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ToggleMonthPickerCommand}" />
+                </HorizontalStackLayout.GestureRecognizers>
+                <Label Text="{Binding MonthTitle}" Style="{StaticResource MonthTitle}" />
+                <Label Text="▾" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <Button Grid.Column="3" Text="›" Style="{StaticResource NavButton}"
                     Command="{Binding NextMonthCommand}" />
+            <Button Grid.Column="4" Text="»" Style="{StaticResource NavButton}"
+                    Command="{Binding NextYearCommand}" />
         </Grid>
 
         <!-- Дни недели -->
@@ -139,6 +152,54 @@
                     HorizontalOptions="End" VerticalOptions="End" Margin="20"
                     BackgroundColor="{StaticResource Primary}" TextColor="{StaticResource OnPrimary}"
                     Command="{Binding AddNoteCommand}" />
+        </Grid>
+
+        <!-- Быстрый выбор месяца и года: перекрывает календарь и список, шапка остаётся доступной -->
+        <Grid Grid.Row="1" Grid.RowSpan="3" IsVisible="{Binding IsMonthPickerOpen}"
+              RowDefinitions="Auto,Auto,*" Padding="16,8"
+              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0" Text="«" Style="{StaticResource NavButton}"
+                        Command="{Binding PreviousPickerYearCommand}" />
+                <Label Grid.Column="1" Text="{Binding PickerYear}" Style="{StaticResource MonthTitle}" />
+                <Button Grid.Column="2" Text="»" Style="{StaticResource NavButton}"
+                        Command="{Binding NextPickerYearCommand}" />
+            </Grid>
+
+            <CollectionView Grid.Row="1" ItemsSource="{Binding PickerMonths}"
+                            SelectionMode="None" HeightRequest="288" Margin="0,8,0,0">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="3" VerticalItemSpacing="8" HorizontalItemSpacing="8" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:MonthItem">
+                        <Border Style="{StaticResource CardBorder}" HeightRequest="64" Padding="4"
+                                StrokeThickness="2">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CalendarViewModel}}, Path=PickMonthCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsToday}" Value="True">
+                                    <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Label Text="{Binding Name}" FontSize="16"
+                                   HorizontalOptions="Center" VerticalOptions="Center">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="TextColor" Value="{StaticResource OnPrimary}" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </Grid>
     </Grid>
 </ContentPage>
